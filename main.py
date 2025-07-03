@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 import os
 # --- Configuration ---
+HF_API_KEY = os.getenv("HF_API_KEY")
 # THIS IS THE UPDATED, MORE RELIABLE MODEL URL
 LLM_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
 
