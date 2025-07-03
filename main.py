@@ -1,10 +1,11 @@
 # ======================================================================
+import os
 import pandas as pd
 import requests
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
-import os
+
 # --- Configuration ---
 HF_API_KEY = os.getenv("HF_API_KEY")
 # THIS IS THE UPDATED, MORE RELIABLE MODEL URL
