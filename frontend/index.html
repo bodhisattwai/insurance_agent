@@ -299,7 +299,7 @@ INSTRUCTIONS:
         async function callApi() {
             inputArea.innerHTML = '<p style="text-align:center; color:#888;">Getting your personalized recommendation...</p>';
             try {
-                const response = await fetch('https://insurance-agent-api.onrender.com', {
+                const response = await fetch('https://insurance-agent-api.onrender.com/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(collectedData)
