@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- Configuration ---
 HF_API_KEY = os.getenv("HF_API_KEY")
 # THIS IS THE UPDATED, MORE RELIABLE MODEL URL
-LLM_API_URL = "https://huggingface.co/google/gemma-3n-E4B-it"
+LLM_API_URL = "https://api-inference.huggingface.co/models/google/gemma-7b-it"
 
 # --- FastAPI App Setup ---
 app = FastAPI()
