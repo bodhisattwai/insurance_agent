@@ -19,7 +19,7 @@ import os
 # This will read the API key from your hosting environment's secrets.
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-LLM_MODEL = "llama4-scout"  # Correct model ID for use in the payload
+LLM_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"  # Correct model ID for use in the payload
 
 # --- FastAPI App Setup ---
 app = FastAPI()
