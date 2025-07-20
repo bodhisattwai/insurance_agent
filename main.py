@@ -20,7 +20,7 @@ import os
 # This will read the API key from your hosting environment's secrets.
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLM_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-LLM_MODEL = "llama3-8b-8192" # Groq is very fast with Llama 3
+LLM_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct" # Groq is very fast with Llama 3
 
 # --- FastAPI App Setup ---
 app = FastAPI()
