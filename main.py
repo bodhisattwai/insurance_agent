@@ -86,46 +86,55 @@ def predict(data: ClientData):
         print(f"Error during K-Means prediction: {e}")
         user_persona = "Valued Client"
 
-    # --- Part 2: LLM-Powered Recommendation ---
-    llm_prompt = f"""
-You are an expert, unbiased insurance advisor in Kolkata, India for Apeejay Insurance Broking.
-Your client's profile:
+# --- Part 2: LLM-Powered Recommendation (IMPROVED) ---
+llm_prompt = f"""
+<role>
+You are an expert, unbiased insurance advisor for Apeejay Insurance Broking, based in Kolkata, India. Your tone should be professional, clear, and encouraging.
+</role>
+
+<client_profile>
 - Persona: {user_persona}
 - Age: {data.Age}
 - Income: {data.annualIncome} from {data.Income_Source}
 - Family: {data.familySize} members, relationship status is {data.relationshipStatus}
 - Primary Goal: {data.financialGoal}
 - Lifestyle Factors: {', '.join(data.lifestyleFactors) or "None specified"}
+</client_profile>
 
-Task: Generate a detailed, structured financial advisory report for this client. Address them directly and warmly. The report must have the following sections, using the exact markdown formatting:
+<task>
+Generate a detailed, structured financial advisory report for the client. First, think step-by-step about their profile and needs. Then, write the report addressing them directly. Use real, well-known insurance products available in India. Do not invent product names.
+</task>
+
+<output_format>
+The report must follow this exact markdown structure:
 
 **1. Profile Summary:**
-Briefly summarize your understanding of the client's current life stage and needs based on their profile.
+Briefly summarize your understanding of the client's current life stage and financial needs.
 
 **2. Health Insurance Recommendation:**
-Recommend ONE specific health insurance plan from a top Indian provider (e.g., HDFC Ergo, Star Health, Niva Bupa, Care Health). Justify your choice by connecting it directly to their profile.
+Recommend the single most suitable health insurance plan from a top Indian provider (e.g., HDFC Ergo, Star Health, Niva Bupa). Justify your choice by connecting it directly to their profile (e.g., family size, age). Also, mention ONE strong alternative and briefly state why it's also a good option.
 
 **3. Life Insurance Recommendation:**
-Recommend ONE specific type of life insurance policy (e.g., Term Plan, ULIP, Endowment Plan) from a top Indian provider (e.g., LIC, HDFC Life, ICICI Prudential, Max Life). Justify why this type of policy and brand are suitable for their primary financial goal.
+Recommend the single most suitable type of life insurance policy (e.g., Term Plan, ULIP) from a top Indian provider (e.g., LIC, HDFC Life, ICICI Prudential). Justify why this policy type and provider are ideal for their primary financial goal.
 
 **4. Important Considerations:**
-Briefly mention one or two key factors they should consider, like the importance of riders (e.g., critical illness rider) or checking the claim settlement ratio.
+Mention two key factors they should consider, such as specific riders (e.g., critical illness, accidental death) and the importance of checking the insurer's latest Claim Settlement Ratio (CSR).
 
 **Disclaimer:**
-End with a brief disclaimer stating that this is an AI-generated recommendation and a consultation with a human Apeejay advisor is recommended.
+End with a brief disclaimer stating that this is an AI-generated recommendation and a consultation with a human Apeejay advisor is recommended for personalized advice.
+</output_format>
 """
-
     # --- NEW: Groq API Call Structure ---
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
-    }
+            }
     payload = {
-        "model": LLM_MODEL,
+        "model": "llama4-scout", # Use the specific model name for Llama 4 Scout
         "messages": [{"role": "user", "content": llm_prompt}],
-        "max_tokens": 700,
-        "temperature": 0.7,
-    }
+        "max_tokens": 800, # Increased slightly for the added alternative recommendation
+        "temperature": 0.6, # Slightly lowered for more factual financial advice
+            }
 
     try:
         print("Sending request to Groq LLM...")
