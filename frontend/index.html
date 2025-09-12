@@ -123,10 +123,12 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .option-button {
+        display: inline-flex;
+        align-items: center;
         padding: 10px 20px;
         border: 1px solid var(--border-color);
         border-radius: 20px;
@@ -147,15 +149,38 @@
         color: white;
         border-color: var(--primary-color);
     }
-
-    .option-button input { display: none; }
     
+    .option-button .icon {
+        margin-right: 8px;
+        font-size: 1.2em;
+    }
+
+    .options-group {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .group-title {
+        text-align: left;
+        color: #777;
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        margin-left: 5px;
+    }
+
+    .none-button {
+        width: 100%;
+        justify-content: center;
+        border-style: dashed;
+    }
+
     .recommendation-card {
         margin-top: 1rem;
         padding: 1rem;
         background-color: #f0f8ff;
         border-left: 4px solid var(--accent-color);
-        white-space: pre-wrap; /* To respect newlines from the LLM */
+        white-space: pre-wrap;
     }
     .recommendation-card h3 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
     .recommendation-card p { margin: 0; }
@@ -174,7 +199,6 @@
     
     let collectedData = {};
     let currentQuestionIndex = 0;
-    let isBotTyping = false;
 
     const conversationFlow = [
         { key: "Age", text: "Hello! I'm your AI advisor from Apeejay Insurance. I'll ask a few questions to find the perfect life insurance plan for you. First, what is your age?", type: "number", validation: v => v > 17 && v < 70, error: "Please enter a valid age for life insurance (18-69)." },
@@ -183,14 +207,25 @@
         { key: "familySize", text: "How many people are financially dependent on you?", type: "number", validation: v => v >= 0, error: "Please enter a valid number (0 if none)." },
         { key: "relationshipStatus", text: "What is your relationship status?", type: "radio", options: ["Single", "Married", "Married with Children", "Divorced", "Widowed"] },
         { key: "financialGoal", text: "What is your primary goal for taking a life insurance policy?", type: "radio", options: ["Family's Financial Security", "Wealth Creation & Savings", "Child's Future Planning", "Retirement Planning", "Tax Saving"] },
-        { key: "lifestyleFactors", text: "Which of these apply to you? (Select all that apply)", type: "checkbox", options: ["Smoker", "High-Risk Occupation", "High-Stress Job", "Travels Frequently", "Any major health conditions", "Owns Property"] },
+        { 
+            key: "lifestyleFactors", 
+            text: "To help me understand your needs better, please select any of the following that apply to you.", 
+            type: "groupedCheckbox",
+            groups: [
+                { title: "Health & Habits", options: [ { text: "Smoker", icon: "🚭" }, { text: "Major health conditions", icon: "❤️" } ] },
+                { title: "Occupation & Lifestyle", options: [ { text: "High-Risk Occupation", icon: "👷" }, { text: "High-Stress Job", icon: "💼" }, { text: "Travels Frequently", icon: "✈️" } ] },
+                { title: "Assets", options: [ { text: "Owns Property", icon: "🏠" } ] }
+            ],
+            noneOption: { text: "None of the above", icon: "✅" }
+        },
         { key: "end", text: "Thank you. I am now analyzing your profile with our AI engine to find the best life insurance solution for you...", isProcessing: true },
     ];
 
     function addMessage(text, sender, recommendation = null) {
         const messageBubble = document.createElement('div');
         messageBubble.className = `message-bubble ${sender}`;
-        messageBubble.innerHTML = text;
+        // A simple markdown-to-HTML conversion for bolding
+        messageBubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         
         if (recommendation) {
             const card = document.createElement('div');
@@ -206,48 +241,93 @@
         const question = conversationFlow[currentQuestionIndex];
         inputArea.innerHTML = ''; 
 
-        if (question.type === 'number' || question.type === 'text') {
+        if (question.type === 'number') {
             const form = document.createElement('form');
             form.onsubmit = handleTextInput;
-            form.innerHTML = `
-                <input type="${question.type}" class="chat-input" placeholder="Type your answer..." required>
-                <button type="submit" class="send-button">Send</button>
-            `;
+            form.innerHTML = `<input type="number" class="chat-input" placeholder="Type your answer..." required><button type="submit" class="send-button">Send</button>`;
             inputArea.appendChild(form);
             form.querySelector('input').focus();
-        } else if (question.type === 'radio' || question.type === 'checkbox') {
+
+        } else if (question.type === 'radio') {
             const optionsContainer = document.createElement('div');
             optionsContainer.className = 'options-container';
-            
             question.options.forEach(opt => {
                 const button = document.createElement('button');
                 button.className = 'option-button';
                 button.textContent = opt;
-                button.onclick = (e) => {
-                    if (question.type === 'radio') {
-                        handleOptionClick(opt);
-                    } else {
-                        e.currentTarget.classList.toggle('selected');
-                    }
-                };
+                button.onclick = () => handleOptionClick(opt);
                 optionsContainer.appendChild(button);
             });
             inputArea.appendChild(optionsContainer);
+        
+        } else if (question.type === 'groupedCheckbox') {
+            const form = document.createElement('form');
+            form.className = 'options-container';
+            form.onsubmit = (e) => { e.preventDefault(); handleCheckboxSubmit(); };
 
-            if (question.type === 'checkbox') {
-                const submitBtn = document.createElement('button');
-                submitBtn.className = 'send-button';
-                submitBtn.textContent = 'Confirm Details';
-                submitBtn.onclick = handleCheckboxSubmit;
-                inputArea.appendChild(submitBtn);
+            // Render grouped options
+            question.groups.forEach(group => {
+                const groupContainer = document.createElement('div');
+                groupContainer.className = 'options-group';
+                groupContainer.innerHTML = `<div class="group-title">${group.title}</div>`;
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'options-container';
+
+                group.options.forEach(opt => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'option-button';
+                    button.dataset.value = opt.text;
+                    button.innerHTML = `<span class="icon">${opt.icon}</span> ${opt.text}`;
+                    button.onclick = handleMultiSelect;
+                    optionsDiv.appendChild(button);
+                });
+                groupContainer.appendChild(optionsDiv);
+                form.appendChild(groupContainer);
+            });
+
+            // Render "None of the above" option
+            if (question.noneOption) {
+                const noneBtn = document.createElement('button');
+                noneBtn.type = 'button';
+                noneBtn.className = 'option-button none-button';
+                noneBtn.dataset.value = question.noneOption.text;
+                noneBtn.id = 'none-option';
+                noneBtn.innerHTML = `<span class="icon">${question.noneOption.icon}</span> ${question.noneOption.text}`;
+                noneBtn.onclick = handleNoneSelect;
+                form.appendChild(noneBtn);
             }
+
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'submit';
+            submitBtn.className = 'send-button';
+            submitBtn.textContent = 'Confirm Details';
+            form.appendChild(submitBtn);
+
+            inputArea.appendChild(form);
         }
+    }
+
+    function handleMultiSelect(e) {
+        const clickedButton = e.currentTarget;
+        clickedButton.classList.toggle('selected');
+        // Deselect "None" if any other option is selected
+        if (clickedButton.classList.contains('selected')) {
+            document.getElementById('none-option')?.classList.remove('selected');
+        }
+    }
+
+    function handleNoneSelect(e) {
+        const noneButton = e.currentTarget;
+        const allOptionButtons = inputArea.querySelectorAll('.option-button:not(.none-button)');
+        // Deselect all others if "None" is selected
+        allOptionButtons.forEach(btn => btn.classList.remove('selected'));
+        noneButton.classList.toggle('selected');
     }
     
     function processNextStep(data) {
          currentQuestionIndex++;
          collectedData = {...collectedData, ...data};
-
          if (currentQuestionIndex < conversationFlow.length) {
             const nextQuestion = conversationFlow[currentQuestionIndex];
             setTimeout(() => {
@@ -280,8 +360,8 @@
     }
 
     function handleCheckboxSubmit() {
-        const selected = Array.from(inputArea.querySelectorAll('.option-button.selected')).map(btn => btn.textContent);
-        const userResponse = selected.length > 0 ? selected.join(', ') : 'None';
+        const selected = Array.from(inputArea.querySelectorAll('.option-button.selected')).map(btn => btn.dataset.value);
+        const userResponse = selected.length > 0 ? selected.join(', ') : 'None specified';
         addMessage(userResponse, 'user');
         const question = conversationFlow[currentQuestionIndex];
         processNextStep({ [question.key]: selected });
@@ -295,7 +375,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(collectedData)
             });
-            if (!response.ok) throw new Error('Network response was not ok.');
+            if (!response.ok) throw new Error(`Network response error: ${response.statusText}`);
             const result = await response.json();
             
             setTimeout(() => {
