@@ -1,334 +1,230 @@
-<!--
-======================================================================
-FILE: `index.html`
-
-INSTRUCTIONS:
-1. Go to your `frontend` folder.
-2. Delete the old `index.html` file if it exists.
-3. Save this entire code block as a new file named `index.html` inside the `frontend` folder.
-4. To run, just double-click this new `index.html` file to open it in your browser.
-======================================================================
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apeejay AI Insurance Advisor</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
-        :root {
-            --primary-color: #003366;
-            --accent-color: #FFBF00;
-            --bg-color: #f4f7f9;
-            --bot-bubble-bg: #ffffff;
-            --user-bubble-bg: #003366;
-            --text-primary: #333;
-            --text-light: #ffffff;
-            --border-color: #e0e0e0;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .chatbot-container {
-            width: 100%;
-            max-width: 550px;
-            height: 90vh;
-            max-height: 800px;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: var(--primary-color);
-            color: var(--text-light);
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-
-        .chat-window {
-            flex-grow: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .message-bubble {
-            padding: 12px 20px;
-            border-radius: 20px;
-            max-width: 85%;
-            line-height: 1.6;
-            word-wrap: break-word;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; translateY(0); }
-        }
-
-        .bot {
-            background-color: var(--bot-bubble-bg);
-            color: var(--text-primary);
-            align-self: flex-start;
-            border: 1px solid var(--border-color);
-            border-radius: 20px 20px 20px 5px;
-        }
-
-        .user {
-            background-color: var(--user-bubble-bg);
-            color: var(--text-light);
-            align-self: flex-end;
-            border-radius: 20px 20px 5px 20px;
-        }
-        
-        .input-area {
-            padding: 1rem;
-            border-top: 1px solid var(--border-color);
-            background-color: #fff;
-        }
-        
-        .chat-input {
-            width: 100%;
-            padding: 12px 18px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .send-button {
-            width: 100%;
-            margin-top: 10px;
-            padding: 12px 25px;
-            border: none;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        
-        .options-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .option-button {
-            padding: 10px 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            cursor: pointer;
-            background: #fff;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-        
-        .option-button:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .option-button.selected {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .option-button input { display: none; }
-        
-        .recommendation-card {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f0f8ff;
-            border-left: 4px solid var(--accent-color);
-            white-space: pre-wrap; /* To respect newlines from the LLM */
-        }
-        .recommendation-card h3 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
-        .recommendation-card p { margin: 0; }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apeejay Life Insurance Advisor</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#003366; --accent:#FFBF00; --bg:#f4f7f9; --bot:#ffffff; --user:#003366;
+      --text:#333; --text-light:#fff; --border:#e6e8ee; --muted:#8a94a6; --card:#f0f8ff;
+    }
+    *{box-sizing:border-box}
+    body{font-family:"Poppins",sans-serif;background:var(--bg);margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    .shell{width:100%;max-width:680px;height:92vh;max-height:900px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column}
+    .top{background:linear-gradient(135deg,var(--primary),#0b4a8a);color:#fff;padding:16px 20px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+    .badge{background:rgba(255,255,255,.15);padding:6px 10px;border-radius:999px;font-size:.8rem}
+    .chat{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(#fff,#fafdff)}
+    .bubble{max-width:86%;padding:12px 16px;border-radius:18px;line-height:1.55;animation:fade .25s ease-out;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .bot{background:var(--bot);color:var(--text);align-self:flex-start;border-radius:18px 18px 18px 6px}
+    .user{background:var(--user);color:var(--text-light);align-self:flex-end;border-radius:18px 18px 6px 18px;border-color:transparent}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .input{padding:14px;border-top:1px solid var(--border);background:#fff}
+    .row{display:flex;gap:10px}
+    .field{flex:1;padding:12px 16px;border:1px solid #dfe3ea;border-radius:24px;outline:none;font-size:1rem}
+    .btn{border:0;background:var(--primary);color:#fff;padding:12px 18px;border-radius:24px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:#eef3fb;color:#0b4a8a}
+    .center-note{text-align:center;color:var(--muted);font-size:.92rem}
+    .options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
+    .chip{padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer;font-size:.95rem;transition:.15s;user-select:none}
+    .chip:hover{border-color:var(--primary);color:var(--primary)}
+    .chip.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .card{margin-top:10px;padding:14px;background:var(--card);border-left:4px solid var(--accent);border-radius:10px;box-shadow:0 3px 16px rgba(0,0,0,.05)}
+    .card h3{margin:.2rem 0 .6rem;color:var(--primary)}
+    .kv{display:grid;grid-template-columns:150px 1fr;gap:6px 10px}
+    .muted{color:var(--muted)}
+    pre{background:#0f172a;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto;max-height:260px;font-size:.9rem}
+    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+    .tiny{font-size:.85rem}
+    .warn{background:#fff6e5;border-left:4px solid #ffb703;padding:10px;border-radius:8px;margin-top:8px}
+    .api{font-size:.82rem;color:#37558f}
+  </style>
 </head>
 <body>
-    <div class="chatbot-container">
-        <div class="chat-header">Apeejay AI Insurance Advisor</div>
-        <div class="chat-window" id="chat-window"></div>
-        <div class="input-area" id="input-area"></div>
+  <div class="shell">
+    <div class="top">
+      <div>Apeejay Life Insurance Advisor</div>
+      <div class="badge">Life-only · JSON-strict</div>
     </div>
+    <div id="chat" class="chat"></div>
+    <div id="input" class="input"></div>
+  </div>
 
-    <script>
-        const chatWindow = document.getElementById('chat-window');
-        const inputArea = document.getElementById('input-area');
-        
-        let collectedData = {};
-        let currentQuestionIndex = 0;
-        let isBotTyping = false;
+  <script>
+    // ========= CONFIG =========
+    const API_URL = "http://localhost:7860/predict"; // change if hosted elsewhere
 
-        const conversationFlow = [
-            { key: "Age", text: "Hello! I'm your AI advisor from Apeejay Insurance. I'll ask a few questions to build your financial profile. First, what is your age?", type: "number", validation: v => v > 17 && v < 100, error: "Please enter a valid age (18-99)." },
-            { key: "Income_Source", text: "What is your primary source of income?", type: "radio", options: ["Salaried", "Business Owner", "Self-Employed", "Retired"] },
-            { key: "annualIncome", text: "Which range does your annual income fall into?", type: "radio", options: ["$15k-$30k", "$30k-$50k", "$50k-$75k", "$75k-$100k", "$100k+"] },
-            { key: "familySize", text: "How many members are in your immediate family?", type: "number", validation: v => v > 0, error: "Please enter a valid number." },
-            { key: "relationshipStatus", text: "What is your relationship status?", type: "radio", options: ["Single", "Married w/ Kids", "Married w/ Spouse", "Divorced", "Widowed"] },
-            { key: "financialGoal", text: "What is your single most important financial goal right now?", type: "radio", options: ["Health Coverage", "Retirement Savings", "Tax Saving", "Wealth Creation", "Child Education Fund"] },
-            { key: "lifestyleFactors", text: "Which of the following lifestyle factors apply to you? (Select all that apply)", type: "checkbox", options: ["Smoker", "high stress job", "Sedentary lifestyle", "Owns a car", "travels frequently", "Owns property", "Pet owner", "active lifestyle", "Works night shifts", "international travel", "Prefers homeopathic treatment"] },
-            { key: "end", text: "Thank you for the detailed information. I am now analyzing your complete profile with our AI engine...", isProcessing: true },
-        ];
+    // ========= DOM HELPERS =========
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    function addBubble(html, who="bot"){
+      const d = document.createElement("div");
+      d.className = `bubble ${who}`;
+      d.innerHTML = html;
+      chat.appendChild(d);
+      chat.scrollTop = chat.scrollHeight;
+      return d;
+    }
+    function escapeHTML(s){return s.replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
-        function addMessage(text, sender, recommendation = null) {
-            const messageBubble = document.createElement('div');
-            messageBubble.className = `message-bubble ${sender}`;
-            messageBubble.innerHTML = text;
-            
-            if (recommendation) {
-                const card = document.createElement('div');
-                card.className = 'recommendation-card';
-                card.innerHTML = `<h3>${recommendation.name}</h3><p>${recommendation.recommendation}</p>`;
-                messageBubble.appendChild(card);
+    // ========= LIFE-ONLY QUESTIONS (HLV essentials) =========
+    let idx = 0;
+    const profile = {};
+    const flow = [
+      { key:"age", text:"Hi! I’ll size your life cover (term insurance). First—what is your age?", type:"number", validate:v=>+v>=18 && +v<=99, error:"Enter a valid age (18–99)." },
+      { key:"income_source", text:"Your primary income source?", type:"radio", options:["Salaried","Business Owner","Self-Employed","Retired"] },
+      { key:"annual_income_band", text:"Annual income range?", type:"radio", options:["₹5–10L","₹10–15L","₹15–25L","₹25–40L","₹40L+"] },
+      { key:"family_size", text:"How many members in your immediate family (including you)?", type:"number", validate:v=>+v>0 && +v<15, error:"Enter a valid family size." },
+      { key:"dependents", text:"How many dependents rely on your income (exclude you)?", type:"number", validate:v=>+v>=0 && +v<14, error:"Enter a valid number of dependents." },
+      { key:"relationship_status", text:"Relationship status?", type:"radio", options:["Single","Married (Spouse)","Married (Kids)","Divorced","Widowed"] },
+      { key:"major_liability", text:"Do you have a major loan (e.g., home loan)?", type:"radio", options:["Yes","No"] },
+      { key:"risk_context", text:"Any of these apply? (Select all that apply)", type:"checkbox",
+        options:["Field job / Frequent driving","High-risk hobby","None"] },
+      { key:"__end__", text:"Thanks! Analyzing your life plan…", isProcessing:true }
+    ];
+
+    function renderInput(){
+      const q = flow[idx]; if(!q) return; input.innerHTML = "";
+      if(q.type==="number"||q.type==="text"){
+        input.innerHTML = `
+          <div class="row">
+            <input id="ans" type="${q.type}" class="field" placeholder="Type your answer…" required/>
+            <button class="btn" id="send">Send</button>
+          </div>`;
+        document.getElementById("send").onclick = ()=>{
+          const v = document.getElementById("ans").value.trim();
+          if(q.validate && !q.validate(v)){ addBubble(escapeHTML(q.error),"bot"); return; }
+          addBubble(escapeHTML(v),"user");
+          profile[q.key] = (q.type==="number") ? Number(v) : v;
+          next();
+        };
+      } else if(q.type==="radio"||q.type==="checkbox"){
+        const wrap = document.createElement("div"); wrap.className="options";
+        q.options.forEach(opt=>{
+          const b = document.createElement("button");
+          b.className="chip"; b.type="button"; b.textContent=opt;
+          b.onclick = ()=>{
+            if(q.type==="radio"){
+              addBubble(escapeHTML(opt), "user"); profile[q.key]=opt; next();
+            } else {
+              b.classList.toggle("sel");
             }
-            chatWindow.appendChild(messageBubble);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+          };
+          wrap.appendChild(b);
+        });
+        input.appendChild(wrap);
+        if(q.type==="checkbox"){
+          const row = document.createElement("div"); row.className="toolbar";
+          const ok = document.createElement("button"); ok.className="btn"; ok.textContent="Confirm";
+          ok.onclick=()=>{
+            const selected = Array.from(input.querySelectorAll(".chip.sel")).map(n=>n.textContent);
+            addBubble(escapeHTML(selected.length? selected.join(", ") : "None"), "user");
+            profile[q.key] = selected;
+            next();
+          };
+          row.appendChild(ok); input.appendChild(row);
         }
-        
-        function renderInput() {
-            const question = conversationFlow[currentQuestionIndex];
-            inputArea.innerHTML = ''; 
+      }
+    }
 
-            if (question.type === 'number' || question.type === 'text') {
-                const form = document.createElement('form');
-                form.onsubmit = handleTextInput;
-                form.innerHTML = `
-                    <input type="${question.type}" class="chat-input" placeholder="Type your answer..." required>
-                    <button type="submit" class="send-button">Send</button>
-                `;
-                inputArea.appendChild(form);
-                form.querySelector('input').focus();
-            } else if (question.type === 'radio' || question.type === 'checkbox') {
-                const optionsContainer = document.createElement('div');
-                optionsContainer.className = 'options-container';
-                
-                question.options.forEach(opt => {
-                    const button = document.createElement('button');
-                    button.className = 'option-button';
-                    button.textContent = opt;
-                    button.onclick = (e) => {
-                        if (question.type === 'radio') {
-                            handleOptionClick(opt);
-                        } else {
-                            e.currentTarget.classList.toggle('selected');
-                        }
-                    };
-                    optionsContainer.appendChild(button);
-                });
-                inputArea.appendChild(optionsContainer);
+    function next(){
+      idx++;
+      if(idx < flow.length){
+        const q = flow[idx];
+        setTimeout(()=>{
+          addBubble(escapeHTML(q.text),"bot");
+          if(q.isProcessing){ callAPI(); } else { renderInput(); }
+        }, 450);
+      }
+    }
 
-                if (question.type === 'checkbox') {
-                    const submitBtn = document.createElement('button');
-                    submitBtn.className = 'send-button';
-                    submitBtn.textContent = 'Confirm Lifestyle Factors';
-                    submitBtn.onclick = handleCheckboxSubmit;
-                    inputArea.appendChild(submitBtn);
-                }
-            }
-        }
-        
-        function processNextStep(data) {
-             currentQuestionIndex++;
-             collectedData = {...collectedData, ...data};
+    // ========= API =========
+    async function callAPI(){
+      input.innerHTML = `<p class="center-note">Getting your life insurance recommendation…</p>
+                         <p class="center-note api">POST ${escapeHTML(API_URL)} with { profile }</p>`;
+      try{
+        const res = await fetch(API_URL, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ profile })
+        });
+        if(!res.ok) throw new Error(\`HTTP \${res.status}\`);
+        const data = await res.json(); // expects schema: persona, assumptions, life_plan, tax_notes, explain_like_im_12, disclaimers
+        renderRecommendation(data);
+        input.innerHTML = `<div class="warn tiny">Note: Premiums are not quoted here. Please verify with current product documents.</div>`;
+      } catch(err){
+        console.error(err);
+        addBubble(
+          \`<div>Couldn’t reach the AI engine.\n<ul>
+             <li>Is the API running at <b>\${escapeHTML(API_URL)}</b>?</li>
+             <li>Does the server allow CORS from file:// or your host?</li>
+           </ul></div>\`, "bot");
+        input.innerHTML = `<div class="toolbar"><button class="btn secondary" onclick="callAPI()">Retry</button></div>`;
+      }
+    }
 
-             if (currentQuestionIndex < conversationFlow.length) {
-                const nextQuestion = conversationFlow[currentQuestionIndex];
-                setTimeout(() => {
-                    addMessage(nextQuestion.text, "bot");
-                    if (nextQuestion.isProcessing) {
-                        callApi();
-                    } else {
-                        renderInput();
-                    }
-                }, 800);
-             }
-        }
+    function objectToLines(obj){
+      const lines=[]; for(const [k,v] of Object.entries(obj||{})){
+        const val = (typeof v === "object") ? JSON.stringify(v) : String(v);
+        lines.push(\`<div><span class="muted tiny">\${escapeHTML(k)}:</span> \${escapeHTML(val)}</div>\`);
+      } return lines.join("");
+    }
 
-        function handleTextInput(e) {
-            e.preventDefault();
-            const input = e.target.querySelector('input');
-            const question = conversationFlow[currentQuestionIndex];
-            if (question.validation && !question.validation(input.value)) {
-                addMessage(question.error, 'bot');
-                return;
-            }
-            addMessage(input.value, 'user');
-            processNextStep({ [question.key]: input.value });
-        }
-        
-        function handleOptionClick(option) {
-            addMessage(option, 'user');
-            const question = conversationFlow[currentQuestionIndex];
-            processNextStep({ [question.key]: option });
-        }
+    function renderRecommendation(r){
+      // Guard: life-only keys
+      const persona = r?.persona || "Persona";
+      const assumptions = r?.assumptions || {};
+      const life = r?.life_plan || {};
+      const tax = r?.tax_notes || "";
+      const eli12 = r?.explain_like_im_12 || "";
+      const disc = r?.disclaimers || "";
 
-        function handleCheckboxSubmit() {
-            const selected = Array.from(inputArea.querySelectorAll('.option-button.selected')).map(btn => btn.textContent);
-            const userResponse = selected.length > 0 ? selected.join(', ') : 'None';
-            addMessage(userResponse, 'user');
-            processNextStep({ lifestyleFactors: selected });
-        }
-        
-        async function callApi() {
-            inputArea.innerHTML = '<p style="text-align:center; color:#888;">Getting your personalized recommendation...</p>';
-            try {
-                const response = await fetch('https://insurance-agent-api.onrender.com/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(collectedData)
-                });
-                if (!response.ok) throw new Error('Network response was not ok.');
-                const result = await response.json();
-                
-                setTimeout(() => {
-                    if (result.error) {
-                         addMessage(`Sorry, there was an issue: ${result.error}`, 'bot');
-                    } else {
-                         addMessage(`Analysis complete! Based on your profile as a **${result.name}**, here's my personalized advice:`, 'bot', result);
-                    }
-                    inputArea.innerHTML = '<p style="text-align:center; color:#888;">Thank you for using the Apeejay AI Advisor!</p>';
-                }, 1500);
+      const cardHTML = `
+        <div class="card">
+          <h3>Life Insurance Plan – <span class="muted">${escapeHTML(persona)}</span></h3>
+          <div class="kv">
+            <div class="muted">Assumptions</div><div>${objectToLines(assumptions)}</div>
+            <div class="muted">Life Plan</div><div>${objectToLines(life)}</div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="muted">Tax Notes</div>
+            <div>${escapeHTML(tax)}</div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="muted">Explain Like I'm 12</div>
+            <div>${escapeHTML(eli12)}</div>
+          </div>
+          <div style="margin-top:10px" class="muted tiny">${escapeHTML(disc)}</div>
+          <div class="toolbar">
+            <button class="btn secondary" onclick="copyJSON(rJSON)">Copy JSON</button>
+            <button class="btn secondary" onclick="toggleJSON()">Show/Hide JSON</button>
+          </div>
+          <div id="rawjson" style="display:none; margin-top:8px">
+            <pre id="rJSON">${escapeHTML(JSON.stringify(r,null,2))}</pre>
+          </div>
+        </div>`;
+      addBubble(cardHTML, "bot");
+    }
 
-            } catch (error) {
-                console.error('API Error:', error);
-                addMessage('Sorry, I couldn\'t connect to the AI engine. Please check the server and try again later.', 'bot');
-            }
-        }
+    function toggleJSON(){
+      const el = document.getElementById("rawjson");
+      if(el) el.style.display = (el.style.display==="none") ? "block" : "none";
+    }
+    function copyJSON(){
+      const el = document.getElementById("rJSON");
+      const txt = el ? el.innerText : "";
+      if(!txt) return;
+      navigator.clipboard.writeText(txt).then(()=> addBubble("JSON copied to clipboard ✅","bot"));
+    }
 
-        function startConversation() {
-            addMessage(conversationFlow[0].text, "bot");
-            renderInput();
-        }
-        
-        startConversation();
-    </script>
+    // ========= START =========
+    (function start(){
+      addBubble("Hello! I’ll size your **life insurance (term)** based on Human Life Value (HLV). No health/motor here—life cover only.", "bot");
+      addBubble(flow[0].text, "bot");
+      renderInput();
+    })();
+  </script>
 </body>
 </html>
-
