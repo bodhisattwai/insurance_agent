@@ -1,230 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Apeejay Life Insurance Advisor</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --primary:#003366; --accent:#FFBF00; --bg:#f4f7f9; --bot:#ffffff; --user:#003366;
-      --text:#333; --text-light:#fff; --border:#e6e8ee; --muted:#8a94a6; --card:#f0f8ff;
+<meta charset="utf-8"> <!-- prevents weird token errors with ₹ etc. -->
+
+<div id="app" class="advisor"></div>
+<script>
+(function () {
+  const el = document.getElementById("app");
+
+  const mock = {
+    persona:"Cautious Planner",
+    assumptions:{HLV_multiple:12, city_cost_level:"metro"},
+    life_plan:{sum_assured:"₹1.2Cr", rationale:"HLV ~10–12× income"},
+    health_plan:{base_floater:"₹10L", super_topup:"₹40L @ ₹5L", rationale:"metro + parents SR"},
+    motor_plan:{type:"Comprehensive", riders:["Zero Dep","Engine Protect"]},
+    tax_plan:{"80C":"₹1.5L","80D":"₹75k","notes":"Illustrative—verify latest rules"},
+    explain_like_im_12:"First protect income with term; then big hospital bills with top-up.",
+    disclaimers:"No premium quotes without sources; verify PED/waiting periods."
+  };
+
+  function viewLoading() {
+    el.innerHTML = `<div class="p-6 text-sm text-slate-600">Loading recommendation…</div>`;
+  }
+  function viewError(msg) {
+    el.innerHTML = `
+      <div class="p-6 text-red-700 bg-red-50 border border-red-200 rounded-lg">
+        <div class="font-semibold mb-2">Couldn’t reach the advisor API</div>
+        <div class="mb-3">${msg}</div>
+        <button id="useMock" class="px-3 py-1 rounded bg-blue-600 text-white">Show sample output</button>
+      </div>`;
+    document.getElementById("useMock").onclick = () => render(mock);
+  }
+  function render(data) {
+    el.innerHTML = `
+      <div class="p-6 space-y-3">
+        <div class="text-xs uppercase tracking-wide text-slate-500">Persona</div>
+        <div class="text-lg font-semibold">${data.persona}</div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section class="p-4 rounded-lg border">
+            <h3 class="font-semibold mb-2">Life Plan</h3>
+            <pre class="text-sm whitespace-pre-wrap">${JSON.stringify(data.life_plan, null, 2)}</pre>
+          </section>
+          <section class="p-4 rounded-lg border">
+            <h3 class="font-semibold mb-2">Health Plan</h3>
+            <pre class="text-sm whitespace-pre-wrap">${JSON.stringify(data.health_plan, null, 2)}</pre>
+          </section>
+          <section class="p-4 rounded-lg border">
+            <h3 class="font-semibold mb-2">Motor Plan</h3>
+            <pre class="text-sm whitespace-pre-wrap">${JSON.stringify(data.motor_plan, null, 2)}</pre>
+          </section>
+          <section class="p-4 rounded-lg border">
+            <h3 class="font-semibold mb-2">Tax Plan</h3>
+            <pre class="text-sm whitespace-pre-wrap">${JSON.stringify(data.tax_plan, null, 2)}</pre>
+          </section>
+        </div>
+
+        <section class="p-4 rounded-lg bg-slate-50 border">
+          <h3 class="font-semibold mb-2">Explain Like I’m 12</h3>
+          <p class="text-sm">${data.explain_like_im_12}</p>
+        </section>
+
+        <p class="text-xs text-slate-500">${data.disclaimers}</p>
+      </div>`;
+  }
+
+  async function boot() {
+    viewLoading();
+    // Abort if API stalls >5s
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 5000);
+
+    try {
+      const body = { profile: { age: 30, income_band: "₹20–25L", family_size: 4 } };
+      const res = await fetch("http://localhost:7860/predict", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      render(json);
+    } catch (err) {
+      clearTimeout(t);
+      // Show graceful error + mock button
+      viewError(err.message || "Network error");
     }
-    *{box-sizing:border-box}
-    body{font-family:"Poppins",sans-serif;background:var(--bg);margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-    .shell{width:100%;max-width:680px;height:92vh;max-height:900px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column}
-    .top{background:linear-gradient(135deg,var(--primary),#0b4a8a);color:#fff;padding:16px 20px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
-    .badge{background:rgba(255,255,255,.15);padding:6px 10px;border-radius:999px;font-size:.8rem}
-    .chat{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(#fff,#fafdff)}
-    .bubble{max-width:86%;padding:12px 16px;border-radius:18px;line-height:1.55;animation:fade .25s ease-out;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.04)}
-    .bot{background:var(--bot);color:var(--text);align-self:flex-start;border-radius:18px 18px 18px 6px}
-    .user{background:var(--user);color:var(--text-light);align-self:flex-end;border-radius:18px 18px 6px 18px;border-color:transparent}
-    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .input{padding:14px;border-top:1px solid var(--border);background:#fff}
-    .row{display:flex;gap:10px}
-    .field{flex:1;padding:12px 16px;border:1px solid #dfe3ea;border-radius:24px;outline:none;font-size:1rem}
-    .btn{border:0;background:var(--primary);color:#fff;padding:12px 18px;border-radius:24px;cursor:pointer;font-weight:600}
-    .btn.secondary{background:#eef3fb;color:#0b4a8a}
-    .center-note{text-align:center;color:var(--muted);font-size:.92rem}
-    .options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
-    .chip{padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer;font-size:.95rem;transition:.15s;user-select:none}
-    .chip:hover{border-color:var(--primary);color:var(--primary)}
-    .chip.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
-    .card{margin-top:10px;padding:14px;background:var(--card);border-left:4px solid var(--accent);border-radius:10px;box-shadow:0 3px 16px rgba(0,0,0,.05)}
-    .card h3{margin:.2rem 0 .6rem;color:var(--primary)}
-    .kv{display:grid;grid-template-columns:150px 1fr;gap:6px 10px}
-    .muted{color:var(--muted)}
-    pre{background:#0f172a;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto;max-height:260px;font-size:.9rem}
-    .toolbar{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
-    .tiny{font-size:.85rem}
-    .warn{background:#fff6e5;border-left:4px solid #ffb703;padding:10px;border-radius:8px;margin-top:8px}
-    .api{font-size:.82rem;color:#37558f}
-  </style>
-</head>
-<body>
-  <div class="shell">
-    <div class="top">
-      <div>Apeejay Life Insurance Advisor</div>
-      <div class="badge">Life-only · JSON-strict</div>
-    </div>
-    <div id="chat" class="chat"></div>
-    <div id="input" class="input"></div>
-  </div>
+  }
 
-  <script>
-    // ========= CONFIG =========
-    const API_URL = "http://localhost:7860/predict"; // change if hosted elsewhere
-
-    // ========= DOM HELPERS =========
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-    function addBubble(html, who="bot"){
-      const d = document.createElement("div");
-      d.className = `bubble ${who}`;
-      d.innerHTML = html;
-      chat.appendChild(d);
-      chat.scrollTop = chat.scrollHeight;
-      return d;
-    }
-    function escapeHTML(s){return s.replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-
-    // ========= LIFE-ONLY QUESTIONS (HLV essentials) =========
-    let idx = 0;
-    const profile = {};
-    const flow = [
-      { key:"age", text:"Hi! I’ll size your life cover (term insurance). First—what is your age?", type:"number", validate:v=>+v>=18 && +v<=99, error:"Enter a valid age (18–99)." },
-      { key:"income_source", text:"Your primary income source?", type:"radio", options:["Salaried","Business Owner","Self-Employed","Retired"] },
-      { key:"annual_income_band", text:"Annual income range?", type:"radio", options:["₹5–10L","₹10–15L","₹15–25L","₹25–40L","₹40L+"] },
-      { key:"family_size", text:"How many members in your immediate family (including you)?", type:"number", validate:v=>+v>0 && +v<15, error:"Enter a valid family size." },
-      { key:"dependents", text:"How many dependents rely on your income (exclude you)?", type:"number", validate:v=>+v>=0 && +v<14, error:"Enter a valid number of dependents." },
-      { key:"relationship_status", text:"Relationship status?", type:"radio", options:["Single","Married (Spouse)","Married (Kids)","Divorced","Widowed"] },
-      { key:"major_liability", text:"Do you have a major loan (e.g., home loan)?", type:"radio", options:["Yes","No"] },
-      { key:"risk_context", text:"Any of these apply? (Select all that apply)", type:"checkbox",
-        options:["Field job / Frequent driving","High-risk hobby","None"] },
-      { key:"__end__", text:"Thanks! Analyzing your life plan…", isProcessing:true }
-    ];
-
-    function renderInput(){
-      const q = flow[idx]; if(!q) return; input.innerHTML = "";
-      if(q.type==="number"||q.type==="text"){
-        input.innerHTML = `
-          <div class="row">
-            <input id="ans" type="${q.type}" class="field" placeholder="Type your answer…" required/>
-            <button class="btn" id="send">Send</button>
-          </div>`;
-        document.getElementById("send").onclick = ()=>{
-          const v = document.getElementById("ans").value.trim();
-          if(q.validate && !q.validate(v)){ addBubble(escapeHTML(q.error),"bot"); return; }
-          addBubble(escapeHTML(v),"user");
-          profile[q.key] = (q.type==="number") ? Number(v) : v;
-          next();
-        };
-      } else if(q.type==="radio"||q.type==="checkbox"){
-        const wrap = document.createElement("div"); wrap.className="options";
-        q.options.forEach(opt=>{
-          const b = document.createElement("button");
-          b.className="chip"; b.type="button"; b.textContent=opt;
-          b.onclick = ()=>{
-            if(q.type==="radio"){
-              addBubble(escapeHTML(opt), "user"); profile[q.key]=opt; next();
-            } else {
-              b.classList.toggle("sel");
-            }
-          };
-          wrap.appendChild(b);
-        });
-        input.appendChild(wrap);
-        if(q.type==="checkbox"){
-          const row = document.createElement("div"); row.className="toolbar";
-          const ok = document.createElement("button"); ok.className="btn"; ok.textContent="Confirm";
-          ok.onclick=()=>{
-            const selected = Array.from(input.querySelectorAll(".chip.sel")).map(n=>n.textContent);
-            addBubble(escapeHTML(selected.length? selected.join(", ") : "None"), "user");
-            profile[q.key] = selected;
-            next();
-          };
-          row.appendChild(ok); input.appendChild(row);
-        }
-      }
-    }
-
-    function next(){
-      idx++;
-      if(idx < flow.length){
-        const q = flow[idx];
-        setTimeout(()=>{
-          addBubble(escapeHTML(q.text),"bot");
-          if(q.isProcessing){ callAPI(); } else { renderInput(); }
-        }, 450);
-      }
-    }
-
-    // ========= API =========
-    async function callAPI(){
-      input.innerHTML = `<p class="center-note">Getting your life insurance recommendation…</p>
-                         <p class="center-note api">POST ${escapeHTML(API_URL)} with { profile }</p>`;
-      try{
-        const res = await fetch(API_URL, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ profile })
-        });
-        if(!res.ok) throw new Error(\`HTTP \${res.status}\`);
-        const data = await res.json(); // expects schema: persona, assumptions, life_plan, tax_notes, explain_like_im_12, disclaimers
-        renderRecommendation(data);
-        input.innerHTML = `<div class="warn tiny">Note: Premiums are not quoted here. Please verify with current product documents.</div>`;
-      } catch(err){
-        console.error(err);
-        addBubble(
-          \`<div>Couldn’t reach the AI engine.\n<ul>
-             <li>Is the API running at <b>\${escapeHTML(API_URL)}</b>?</li>
-             <li>Does the server allow CORS from file:// or your host?</li>
-           </ul></div>\`, "bot");
-        input.innerHTML = `<div class="toolbar"><button class="btn secondary" onclick="callAPI()">Retry</button></div>`;
-      }
-    }
-
-    function objectToLines(obj){
-      const lines=[]; for(const [k,v] of Object.entries(obj||{})){
-        const val = (typeof v === "object") ? JSON.stringify(v) : String(v);
-        lines.push(\`<div><span class="muted tiny">\${escapeHTML(k)}:</span> \${escapeHTML(val)}</div>\`);
-      } return lines.join("");
-    }
-
-    function renderRecommendation(r){
-      // Guard: life-only keys
-      const persona = r?.persona || "Persona";
-      const assumptions = r?.assumptions || {};
-      const life = r?.life_plan || {};
-      const tax = r?.tax_notes || "";
-      const eli12 = r?.explain_like_im_12 || "";
-      const disc = r?.disclaimers || "";
-
-      const cardHTML = `
-        <div class="card">
-          <h3>Life Insurance Plan – <span class="muted">${escapeHTML(persona)}</span></h3>
-          <div class="kv">
-            <div class="muted">Assumptions</div><div>${objectToLines(assumptions)}</div>
-            <div class="muted">Life Plan</div><div>${objectToLines(life)}</div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="muted">Tax Notes</div>
-            <div>${escapeHTML(tax)}</div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="muted">Explain Like I'm 12</div>
-            <div>${escapeHTML(eli12)}</div>
-          </div>
-          <div style="margin-top:10px" class="muted tiny">${escapeHTML(disc)}</div>
-          <div class="toolbar">
-            <button class="btn secondary" onclick="copyJSON(rJSON)">Copy JSON</button>
-            <button class="btn secondary" onclick="toggleJSON()">Show/Hide JSON</button>
-          </div>
-          <div id="rawjson" style="display:none; margin-top:8px">
-            <pre id="rJSON">${escapeHTML(JSON.stringify(r,null,2))}</pre>
-          </div>
-        </div>`;
-      addBubble(cardHTML, "bot");
-    }
-
-    function toggleJSON(){
-      const el = document.getElementById("rawjson");
-      if(el) el.style.display = (el.style.display==="none") ? "block" : "none";
-    }
-    function copyJSON(){
-      const el = document.getElementById("rJSON");
-      const txt = el ? el.innerText : "";
-      if(!txt) return;
-      navigator.clipboard.writeText(txt).then(()=> addBubble("JSON copied to clipboard ✅","bot"));
-    }
-
-    // ========= START =========
-    (function start(){
-      addBubble("Hello! I’ll size your **life insurance (term)** based on Human Life Value (HLV). No health/motor here—life cover only.", "bot");
-      addBubble(flow[0].text, "bot");
-      renderInput();
-    })();
-  </script>
-</body>
-</html>
+  boot();
+})();
+</script>
